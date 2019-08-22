@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { Component, Fragment } from 'react'
 import {
     Collapse,
     Navbar,
@@ -8,13 +8,19 @@ import {
     NavItem,
     Container
 } from 'reactstrap'
-import RegisterModel from './auth/RegisterModal'
+import RegisterModal from './auth/RegisterModal'
+import Logout from './auth/Logout'
+import LoginModal from './auth/LoginModal';
+import { connect } from 'react-redux'
+import PropTypes from 'prop-types'
 
 class AppNavBar extends Component {
     state = {
-            isOpen: false,
+        isOpen: false,
     }
-
+    static propTypes = {
+        auth: PropTypes.object.isRequired
+    }
     toggle = () => {
         this.setState({
             isOpen: !this.state.isOpen
@@ -22,23 +28,48 @@ class AppNavBar extends Component {
     }
 
     render() {
-        return(
-            <div>
-            <Navbar color="dark" dark expand="sm" className="mb-5">
-                <Container>
-                    <NavbarBrand href="/">To-Do List</NavbarBrand>
-                    <NavbarToggler onClick={this.toggle}/>
-                    <Collapse isOpen={this.state.isOpen} navbar>
-                        <Nav className="ml-auto" navbar>
-                            <NavItem>
-                                   <RegisterModel/>
-                            </NavItem>
-                        </Nav>
-                    </Collapse> 
-                </Container>
-            </Navbar>
-        </div>
-    )}
-}
+        const { isAuthenticated, user } = this.props.auth
+        const authLinks = (
+            <Fragment>
+                <NavItem>
+                    <span className="navbar-text mr-3">
+                        <strong>{user? `Welcome ${user.name}`: ''}</strong>
+                    </span>
+                </NavItem>
+                <NavItem>
+                    <Logout />
+                </NavItem>
+            </Fragment>
+        )
+        const guestLinks = (
+            <Fragment>
+                <NavItem>
+                    <RegisterModal />
+                </NavItem>
+                <NavItem>
+                    <LoginModal />
+                </NavItem>
+            </Fragment>
+        )
 
-export default AppNavBar
+        return (
+            <div>
+                <Navbar color="dark" dark expand="sm" className="mb-5">
+                    <Container>
+                        <NavbarBrand href="/">To-Do List</NavbarBrand>
+                        <NavbarToggler onClick={this.toggle} />
+                        <Collapse isOpen={this.state.isOpen} navbar>
+                            <Nav className="ml-auto" navbar>
+                                {isAuthenticated ? authLinks : guestLinks }
+                            </Nav>
+                        </Collapse>
+                    </Container>
+                </Navbar>
+            </div>
+        )
+    }
+}
+const mapStateToProps = state => ({
+    auth: state.auth
+})
+export default connect(mapStateToProps, null)(AppNavBar)
